@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QuickFill Neural Trainer</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <style>
+    body { font-family: sans-serif; padding: 40px; background: #0f172a; color: white; }
+    h1 { color: #6366f1; }
+    #log { background: #1e293b; padding: 20px; border-radius: 8px; font-family: monospace; height: 400px; overflow-y: auto; margin-top: 20px; white-space: pre-wrap; }
+    button { padding: 12px 24px; font-size: 16px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:disabled { background: #475569; }
+  </style>
+</head>
+<body>
+  <h1>QuickFill Deep Learning Trainer</h1>
+  <p>Status: <span id="status">Ready</span></p>
+  <button id="startBtn">Start 100k Sample Training</button>
+  <div id="log"></div>
+
+  <script src="neural_trainer.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    const btn = document.getElementById('startBtn');
+
+    // Override console.log to show in UI
+    const originalLog = console.log;
+    console.log = (...args) => {
+      originalLog(...args);
+      logEl.textContent += args.join(' ') + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+      statusEl.textContent = args[0].startsWith('Epoch') ? args[0] : statusEl.textContent;
+    };
+
+    btn.onclick = async () => {
+      btn.disabled = true;
+      statusEl.textContent = 'Training...';
+      await window.runTraining();
+      statusEl.textContent = 'Done! Check your downloads.';
+    };
+  </script>
+</body>
+</html>

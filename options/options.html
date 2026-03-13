@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Copy - Presets</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      max-width: 640px;
+      color: #1a1a1a;
+      background: #f8f9fa;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+    .add-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .add-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .add-row input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .add-row input::placeholder {
+      color: #9ca3af;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add {
+      background: #3b82f6;
+      color: white;
+    }
+    .btn-add:hover { background: #2563eb; }
+    .btn-add:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .btn-edit, .btn-delete {
+      background: transparent;
+      color: #6b7280;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+    .btn-edit:hover { color: #3b82f6; }
+    .btn-delete:hover { color: #dc2626; }
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .preset-item {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .preset-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .preset-label {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #1a1a1a;
+    }
+    .preset-text {
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preset-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .max-hint {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    .modal h2 { margin: 0 0 16px 0; font-size: 1.1rem; }
+    .modal label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #374151; }
+    .modal input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .modal textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      min-height: 80px;
+      resize: vertical;
+    }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-save { background: #22c55e; color: white; }
+    .btn-save:hover { background: #16a34a; }
+    .btn-cancel { background: #e5e7eb; color: #374151; }
+    .btn-cancel:hover { background: #d1d5db; }
+    .hidden { display: none !important; }
+    
+    /* Tab styles */
+    .tabs-nav {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 1px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      color: #6b7280;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #1a1a1a; }
+    .tab-btn.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Profile form styles */
+    .profile-form {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group.full { grid-column: span 2; }
+    .profile-section-title {
+      grid-column: span 2;
+      font-weight: 700;
+      font-size: 16px;
+      color: #2563eb;
+      margin: 20px 0 10px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #eff6ff;
+    }
+    .form-group label { font-size: 13px; font-weight: 500; color: #374151; }
+    .form-group input {
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .form-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  </style>
+</head>
+<body>
+  <h1>QuickFill</h1>
+  <p class="subtitle">Manage your snippets and identity profile for faster autofilling.</p>
+
+  <nav class="tabs-nav">
+    <button class="tab-btn active" data-tab="snippets">Snippets</button>
+    <button class="tab-btn" data-tab="profile">My Identity</button>
+  </nav>
+
+  <div id="tab-snippets" class="tab-content active">
+    <div class="add-row">
+      <input type="text" id="new-label" placeholder="Label (e.g. LinkedIn)" maxlength="32" style="flex: 1;">
+      <select id="new-type" style="padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 14px;">
+        <option value="text">Text</option>
+        <option value="url">URL</option>
+        <option value="template">Template</option>
+      </select>
+      <input type="text" id="new-domain" placeholder="Domain (optional)" style="flex: 1;">
+      <input type="text" id="new-content" placeholder="Content to insert/copy" style="flex: 2;">
+      <button class="btn-add" id="btn-add">Add preset</button>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <p class="max-hint">URLs get a link icon; other text shows the first letter of the label.</p>
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-export" style="background: #64748b; color: white;">Export JSON</button>
+        <button id="btn-import" style="background: #94a3b8; color: white;">Import JSON</button>
+        <input type="file" id="import-file" class="hidden" accept=".json">
+      </div>
+    </div>
+
+    <div class="preset-list" id="preset-list"></div>
+    <div class="empty-state hidden" id="empty-state">No snippets yet. Add one above.</div>
+  </div>
+
+  <div id="tab-profile" class="tab-content">
+    <div class="profile-form">
+      <div class="profile-section-title">Personal Information</div>
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="p-firstName" placeholder="John">
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" id="p-lastName" placeholder="Doe">
+      </div>
+      <div class="form-group">
+        <label>Middle Name</label>
+        <input type="text" id="p-middleName" placeholder="Quincy">
+      </div>
+      <div class="form-group">
+        <label>Preferred Name</label>
+        <input type="text" id="p-preferredName" placeholder="Johnny">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="p-email" placeholder="john@example.com">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" id="p-phone" placeholder="+1 234 567 890">
+      </div>
+      <div class="form-group full">
+        <label>Street Address</label>
+        <input type="text" id="p-address" placeholder="123 Main St">
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="p-city" placeholder="San Francisco">
+      </div>
+      <div class="form-group">
+        <label>Zip/Postal Code</label>
+        <input type="text" id="p-zip" placeholder="94107">
+      </div>
+
+      <div class="profile-section-title">Professional Details</div>
+      <div class="form-group">
+        <label>Current Company</label>
+        <input type="text" id="p-company" placeholder="Acme Inc">
+      </div>
+      <div class="form-group">
+        <label>Years of Experience</label>
+        <input type="text" id="p-yearsOfExperience" placeholder="5">
+      </div>
+      <div class="form-group">
+        <label>Notice Period</label>
+        <input type="text" id="p-noticePeriod" placeholder="2 weeks">
+      </div>
+      <div class="form-group">
+        <label>Salary Expectation</label>
+        <input type="text" id="p-salaryExpectation" placeholder="$120k/yr">
+      </div>
+      <div class="form-group full">
+        <label>Professional Summary</label>
+        <textarea id="p-summary" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-height: 80px;" placeholder="Brief bio..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>LinkedIn URL</label>
+        <input type="text" id="p-linkedin" placeholder="https://linkedin.com/in/username">
+      </div>
+      <div class="form-group">
+        <label>GitHub URL</label>
+        <input type="text" id="p-github" placeholder="https://github.com/username">
+      </div>
+      <div class="form-group">
+        <label>Portfolio URL</label>
+        <input type="text" id="p-portfolio" placeholder="https://portfolio.com">
+      </div>
+
+      <div class="profile-section-title">Job Application Disclosures</div>
+      <div class="form-group">
+        <label>Nationality</label>
+        <input type="text" id="p-nationality" placeholder="United States">
+      </div>
+      <div class="form-group">
+        <label>Dual Citizenship?</label>
+        <input type="text" id="p-dualCitizenship" placeholder="No / Specify">
+      </div>
+      <div class="form-group">
+        <label>Are you over 18?</label>
+        <input type="text" id="p-over18" placeholder="Yes / No">
+      </div>
+      <div class="form-group">
+        <label>Willing to work office?</label>
+        <input type="text" id="p-officeWilling" placeholder="Yes / No">
+      </div>
+      <div class="form-group">
+        <label>Worked here before?</label>
+        <input type="text" id="p-previousWork" placeholder="No / Yes">
+      </div>
+      <div class="form-group">
+        <label>Current employee?</label>
+        <input type="text" id="p-currentEmployee" placeholder="No / Yes">
+      </div>
+      <div class="form-group">
+        <label>Authorized to work?</label>
+        <input type="text" id="p-authorized" placeholder="Yes / No">
+      </div>
+      <div class="form-group">
+        <label>Require Citizenship?</label>
+        <input type="text" id="p-sponsorship" placeholder="Yes / No">
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <input type="text" id="p-gender" placeholder="Male / Female / Decline">
+      </div>
+      <div class="form-group">
+        <label>Race / Ethnicity</label>
+        <input type="text" id="p-ethnicity" placeholder="Asian / White / Decline">
+      </div>
+      <div class="form-group">
+        <label>Veteran Status</label>
+        <input type="text" id="p-veteranStatus" placeholder="Yes / No / Decline">
+      </div>
+      <div class="form-group">
+        <label>Disability Status</label>
+        <input type="text" id="p-disabilityStatus" placeholder="Yes / No / Decline">
+      </div>
+      <button id="btn-save-profile" class="btn-add full" style="grid-column: span 2; margin-top: 12px; height: 44px; font-size: 15px;">Save All Identity Information</button>
+    </div>
+  </div>
+
+  <!-- Edit modal -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal">
+      <h2>Edit preset</h2>
+      <label for="edit-label">Label</label>
+      <input type="text" id="edit-label" maxlength="32">
+      <label for="edit-type">Type</label>
+      <select id="edit-type" style="width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
+        <option value="text">Text</option>
+        <option value="url">URL</option>
+        <option value="template">Template</option>
+      </select>
+      <label for="edit-domain">Domain (optional, comma separated)</label>
+      <input type="text" id="edit-domain">
+      <label for="edit-content">Content</label>
+      <textarea id="edit-content" placeholder="URL or any text..."></textarea>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel">Cancel</button>
+        <button class="btn-save" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../features/utils.js"></script>
+  <script src="../storage/presets.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

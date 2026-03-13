@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "QuickFill",
+  "version": "1.1",
+  "description": "A browser productivity layer that lets users insert snippets, autofill common fields, and launch templates anywhere on the web.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "clipboardWrite",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options/options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "features/tf.min.js",
+        "features/utils.js",
+        "storage/presets.js",
+        "features/snippets.js",
+        "features/fieldDetector.js",
+        "features/autofill.js",
+        "features/smartFill.js",
+        "features/dragInsert.js",
+        "ui/styles.js",
+        "ui/components.js",
+        "ui/configPanel.js",
+        "ui/commandPalette.js",
+        "ui/floatingMenu.js",
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "models/smart_model.json",
+        "models/neural_model.json",
+        "models/neural_model.weights.bin"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
