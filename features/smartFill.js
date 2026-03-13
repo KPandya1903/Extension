@@ -32,7 +32,7 @@ QF.SmartFill = {
     'disabilityStatus', 'salaryExpectation', 'noticePeriod', 'yearsOfExperience'
   ],
 
-  _chars: ' abcdefghijklmnopqrstuvwxyz0123456789?,.:!(*)@#',
+  _chars: ' abcdefghijklmnopqrstuvwxyz0123456789?,.:!(*)@#-/+\'&%',
   _maxLen: 64,
 
   // ─── Model loading ──────────────────────────────────────────────────────────
@@ -68,22 +68,25 @@ QF.SmartFill = {
     const model = await this._loadModel();
     if (!model) return null;
 
-    return tf.tidy(() => {
+    // tf.tidy must be synchronous — extract all tensor ops into a sync block,
+    // then read data outside of tidy to avoid disposing tensors prematurely.
+    let index, probability;
+    tf.tidy(() => {
       const input = this._vectorize(text);
       const prediction = model.predict(input);
       const probs = prediction.dataSync();
-      const index = prediction.argMax(1).dataSync()[0];
-      const probability = probs[index];
-
-      if (probability < 0.60) {
-        console.log(`[QF AI] Low confidence (${(probability * 100).toFixed(1)}%) for: "${text.slice(0, 40)}"`);
-        return null;
-      }
-
-      const category = this._categories[index];
-      console.log(`[QF AI] Neural: "${text.slice(0, 40)}" → ${category} (${(probability * 100).toFixed(1)}%)`);
-      return category;
+      index = prediction.argMax(1).dataSync()[0];
+      probability = probs[index];
     });
+
+    if (probability < 0.60) {
+      console.log(`[QF AI] Low confidence (${(probability * 100).toFixed(1)}%) for: "${text.slice(0, 40)}"`);
+      return null;
+    }
+
+    const category = this._categories[index];
+    console.log(`[QF AI] Neural: "${text.slice(0, 40)}" → ${category} (${(probability * 100).toFixed(1)}%)`);
+    return category;
   },
 
   // ─── Rule-based classifier (covers remaining profile fields) ────────────────
@@ -211,7 +214,7 @@ QF.SmartFill = {
 
     } else {
       // ARIA button groups (common in Workday, Greenhouse, Lever)
-      const parent = el.closest('[role="group"], fieldset, .form-group, div, td');
+      const parent = el.closest('[role="group"], fieldset');
       if (parent) {
         const btns = Array.from(parent.querySelectorAll('[role="button"], button, [role="radio"], [role="option"]'));
         if (btns.length > 0) {

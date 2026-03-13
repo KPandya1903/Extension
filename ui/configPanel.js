@@ -198,7 +198,8 @@ QF.createConfigPanel = function() {
       });
       list.appendChild(item);
     });
-    addBtn.disabled = presets.length >= 50 && !editingId;
+    // Only disable when at cap AND not currently editing an existing preset
+    addBtn.disabled = presets.length >= 50 && editingId === null;
   }
 
   addBtn.addEventListener('click', () => {

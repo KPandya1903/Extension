@@ -47,6 +47,10 @@ QF.matchesDomain = function(preset, hostname) {
 };
 
 QF.copyToClipboard = function(text) {
+  // Prefer Clipboard API (modern, spec-compliant); fall back to deprecated execCommand
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
   return new Promise((resolve, reject) => {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -64,9 +68,7 @@ QF.copyToClipboard = function(text) {
       ok ? resolve() : reject(new Error('copy failed'));
     } catch (e) {
       document.body.removeChild(ta);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(resolve).catch(reject);
-      } else reject(e);
+      reject(e);
     }
   });
 };

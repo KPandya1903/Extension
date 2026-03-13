@@ -35,8 +35,13 @@ QF.insertSnippet = async function(preset) {
         if (selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
           range.deleteContents();
-          range.insertNode(document.createTextNode(content));
-          range.collapse(false);
+          const node = document.createTextNode(content);
+          range.insertNode(node);
+          // Collapse to end of inserted node so cursor is correctly positioned
+          range.setStartAfter(node);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
         } else {
           active.textContent += content;
         }

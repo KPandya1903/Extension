@@ -106,14 +106,16 @@ QF.createCommandPalette = function(root) {
       if (selectedIndex < items.length - 1) {
         selectedIndex++;
         renderList(input.value);
-        list.children[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        const el = list.querySelector(`.qc-palette-item:nth-child(${selectedIndex + 1})`);
+        if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (selectedIndex > 0) {
         selectedIndex--;
         renderList(input.value);
-        list.children[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        const el = list.querySelector(`.qc-palette-item:nth-child(${selectedIndex + 1})`);
+        if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     } else if (e.key === 'Enter') {
       e.preventDefault();

@@ -82,10 +82,12 @@ QF.detectFields = function() {
       steps++;
     }
 
-    // Parent's previous sibling (label row above input row)
+    // Parent's previous sibling (label row above input row) — text elements only
     if (input.parentElement) {
       const pp = input.parentElement.previousElementSibling;
-      if (pp) parts.push(pp.textContent.trim());
+      if (pp && ['LABEL', 'SPAN', 'DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'LEGEND', 'DT'].includes(pp.tagName)) {
+        parts.push(pp.textContent.trim());
+      }
     }
 
     // Fieldset legend (Workday, Greenhouse radio questions)

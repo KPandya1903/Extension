@@ -28,14 +28,14 @@ QF.autofillField = async function(element, preset) {
   if (element.type === 'radio') {
     const name = element.name;
     if (!name) return;
-    const group = Array.from(document.querySelectorAll(`input[type="radio"][name="${name}"]`));
+    const group = Array.from(document.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`));
     const lowerContent = content.toLowerCase();
 
     for (const radio of group) {
       // Find label for this radio
       let labelText = '';
       if (radio.id) {
-        const l = document.querySelector(`label[for="${radio.id}"]`);
+        const l = document.querySelector(`label[for="${CSS.escape(radio.id)}"]`);
         if (l) labelText = l.textContent;
       }
       if (!labelText) {
@@ -59,7 +59,7 @@ QF.autofillField = async function(element, preset) {
       element.dispatchEvent(new Event('input', { bubbles: true }));
       element.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
-      element.innerHTML = content;
+      element.textContent = content;
       element.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
@@ -160,20 +160,19 @@ QF.autofillAll = async function(detectedFields, profile) {
     if (content && String(content).trim().length > 0) {
       await QF.autofillField(field.element, { content: String(content) });
       filledCount++;
-      await new Promise(r => setTimeout(r, 40));
+      await new Promise(r => setTimeout(r, 15));
       continue;
     }
 
-    // ── Tier 2: Preset fallback — match by label or content keywords ─────────
+    // ── Tier 2: Preset fallback — match by label keyword only (not content) ──
     const match = presets.find(preset => {
       const label = (preset.label || '').toLowerCase();
-      const pContent = (preset.content || preset.text || '').toLowerCase();
-      return label.includes(type) || type.includes(label) || pContent.includes(type);
+      return label.includes(type) || type.includes(label);
     });
     if (match) {
       await QF.autofillField(field.element, match);
       filledCount++;
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 20));
     }
   }
 
