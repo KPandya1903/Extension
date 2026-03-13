@@ -8,7 +8,7 @@ QF.createFloatingMenu = function(root, host, configPanel) {
   mainBtn.className = 'main-btn';
   mainBtn.type = 'button';
   mainBtn.innerHTML = QF.Icons.plus;
-  mainBtn.title = 'Quick Copy presets';
+  mainBtn.title = 'QuickCopy snippets';
 
   let expanded = false;
   let configOpen = false;
@@ -21,67 +21,12 @@ QF.createFloatingMenu = function(root, host, configPanel) {
 
     subButtons.forEach((el) => el.remove());
     subButtons = [];
-    
-    // Header actions: Autofill (if detected) and Config
-    const detectedFields = QF.detectFields();
-    const actionButtons = [];
 
-    const actionButtonDefinitions = [
-      {
-        id: 'smart-fill',
-        icon: QF.Icons.brain,
-        label: 'Smart Fill (AI)',
-        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-        action: async (btn) => {
-          const fields = QF.detectFields();
-          const profile = await QF.Storage.getProfile();
-          const filled = await QF.SmartFill.fillAll(fields, profile);
-          if (filled > 0) {
-            btn.classList.add('copied');
-            setTimeout(() => btn.classList.remove('copied'), 800);
-            QF.showToast(`AI filled ${filled} field(s)`, root);
-          } else {
-            QF.showToast('AI could not determine answers. Try manual!', root);
-          }
-        }
-      },
-      {
-        id: 'autofill',
-        icon: QF.Icons.magic,
-        label: 'Standard Fill',
-        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        action: async (btn) => {
-          const fields = QF.detectFields();
-          const p = await QF.Storage.getProfile();
-          const filled = await QF.autofillAll(fields, p);
-          if (filled > 0) {
-            btn.classList.add('copied');
-            setTimeout(() => btn.classList.remove('copied'), 800);
-            QF.showToast(`Filled ${filled} field(s)`, root);
-          } else {
-            QF.showToast('No matching data found.', root);
-          }
-        }
-      }
-    ];
-
-    actionButtonDefinitions.forEach(def => {
-      const btn = document.createElement('button');
-      btn.className = `sub-btn qc-${def.id}-btn`;
-      btn.type = 'button';
-      btn.innerHTML = `<div class="qc-inner"><span class="qc-icon">${def.icon}</span><span class="qc-check">${QF.Icons.check}</span></div><span class="qc-label">${def.label}</span>`;
-      btn.style.background = def.background;
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        await def.action(btn);
-      });
-      actionButtons.push(btn);
-    });
-
+    // Config button always at top
     const configBtn = document.createElement('button');
     configBtn.className = 'sub-btn qc-config-btn';
     configBtn.type = 'button';
-    configBtn.innerHTML = `<div class="qc-inner"><span class="qc-icon">${QF.Icons.gear}</span><span class="qc-check">${QF.Icons.check}</span></div><span class="qc-label">Configure</span>`;
+    configBtn.innerHTML = `<div class="qc-inner"><span class="qc-icon">${QF.Icons.gear}</span><span class="qc-check">${QF.Icons.check}</span></div><span class="qc-label">Snippets</span>`;
     configBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       configOpen = !configOpen;
@@ -102,36 +47,33 @@ QF.createFloatingMenu = function(root, host, configPanel) {
         configBackdrop = null;
       }
     });
-    actionButtons.push(configBtn);
 
-    // Layout helper
-    const totalActions = actionButtons.length;
-    actionButtons.forEach((btn, i) => {
-      const offsetY = -(presets.length + totalActions - i) * 56;
-      btn.style.transform = `translateY(${offsetY}px) scale(0)`;
-      btn.style.opacity = '0';
-      btn.style.transition = `transform 0.25s cubic-bezier(0.34,1.56,0.64,1) 0ms, opacity 0.2s 0ms`;
-      btn.dataset.offsetY = String(offsetY);
-      wrap.appendChild(btn);
-      subButtons.push(btn);
-    });
+    const totalActions = 1;
+    const configOffsetY = -(presets.length + totalActions) * 56;
+    configBtn.style.transform = `translateY(${configOffsetY}px) scale(0)`;
+    configBtn.style.opacity = '0';
+    configBtn.style.transition = `transform 0.25s cubic-bezier(0.34,1.56,0.64,1) 0ms, opacity 0.2s 0ms`;
+    configBtn.dataset.offsetY = String(configOffsetY);
+    wrap.appendChild(configBtn);
+    subButtons.push(configBtn);
 
+    // Snippet buttons
     presets.forEach((preset, i) => {
       const btn = document.createElement('button');
       btn.className = 'sub-btn';
       btn.type = 'button';
       btn.innerHTML = QF.getButtonInnerHtml(preset) + `<span class="qc-label">${QF.escapeHtml(preset.label)}</span>`;
-      btn.title = `${preset.label}: ${(preset.content || preset.text).slice(0, 50)}${(preset.content || preset.text).length > 50 ? '…' : ''}`;
-      
+      const contentStr = preset.content || preset.text || '';
+      btn.title = `${preset.label}: ${contentStr.slice(0, 50)}${contentStr.length > 50 ? '…' : ''}`;
+
       const offsetY = -(presets.length - i) * 56;
       btn.style.transform = `translateY(${offsetY}px) scale(0)`;
       btn.style.opacity = '0';
       btn.style.transition = `transform 0.25s cubic-bezier(0.34,1.56,0.64,1) ${i * 30}ms, opacity 0.2s ${i * 30}ms, background 0.2s`;
       btn.dataset.offsetY = String(offsetY);
-      
+
       btn.draggable = true;
       btn.addEventListener('dragstart', (e) => {
-        const contentStr = preset.content || preset.text || '';
         e.dataTransfer.setData('text/plain', contentStr);
         e.dataTransfer.setData('application/x-quickfill-preset', contentStr);
         e.dataTransfer.effectAllowed = 'copy';
@@ -157,15 +99,14 @@ QF.createFloatingMenu = function(root, host, configPanel) {
 
   async function toggleExpand() {
     expanded = !expanded;
-    
+
     if (expanded) {
-      // Refresh presets and detect fields on expand to catch dynamic forms
       const allPresets = await QF.Storage.getPresets();
       renderSubButtons(allPresets);
     }
 
     mainBtn.innerHTML = expanded ? QF.Icons.close : QF.Icons.plus;
-    
+
     subButtons.forEach((sub) => {
       const oy = sub.dataset.offsetY || '0';
       sub.style.transform = expanded ? `translateY(${oy}px) scale(1)` : `translateY(${oy}px) scale(0)`;
@@ -202,10 +143,7 @@ QF.createFloatingMenu = function(root, host, configPanel) {
           sub.style.transform = `translateY(${oy}px) scale(0)`;
           sub.style.opacity = '0';
         });
-      }
-      if (configOpen) {
-        configOpen = false;
-        configPanel.style.display = 'none';
+        mainBtn.innerHTML = QF.Icons.plus;
       }
     }
   });
