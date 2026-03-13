@@ -20,7 +20,6 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "features/tf.min.js",
         "features/utils.js",
         "storage/presets.js",
         "features/snippets.js",

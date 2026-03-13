@@ -5,13 +5,13 @@ window.QF = window.QF || {};
  * Two-tier intelligent autofill engine — 100% offline, 0 API calls.
  *
  * Tier 1 — Neural Network (TensorFlow.js CNN, 13 trained categories)
- *   Classifies ambiguous/natural-language form labels (e.g. "Are you authorized
- *   to work in this country?" → 'authorized').
+ *   TF.js runs in the background service worker (avoids MV3 content-script
+ *   CSP restriction on unsafe-eval). Content scripts delegate via
+ *   chrome.runtime.sendMessage({ type: 'QF_CLASSIFY', text }).
  *
  * Tier 2 — Rule-Based classifier
- *   Deterministic keyword matching for the remaining ~17 profile fields
- *   (email, phone, address, linkedin, github, etc.) that the neural model
- *   does not cover. Fast and zero-error.
+ *   Deterministic keyword matching for the remaining profile fields.
+ *   Fast and zero-error. Used as fallback when neural returns null.
  *
  * Option matching uses Jaro-Winkler string similarity for robust handling
  * of SELECT dropdowns and radio groups on real-world job applications.
@@ -22,71 +22,17 @@ window.QF = window.QF || {};
  *   - Jaro, M.A. (1989). Advances in Record-Linkage Methodology.
  */
 QF.SmartFill = {
-  _model: null,
-  _modelFailed: false,
 
-  // Categories the neural network was trained to predict
-  _categories: [
-    'firstName', 'lastName', 'over18', 'sponsorship', 'authorized',
-    'officeWilling', 'gender', 'ethnicity', 'veteranStatus',
-    'disabilityStatus', 'salaryExpectation', 'noticePeriod', 'yearsOfExperience'
-  ],
-
-  _chars: ' abcdefghijklmnopqrstuvwxyz0123456789?,.:!(*)@#-/+\'&%',
-  _maxLen: 64,
-
-  // ─── Model loading ──────────────────────────────────────────────────────────
-
-  async _loadModel() {
-    if (this._model) return this._model;
-    if (this._modelFailed) return null;
-    try {
-      const url = chrome.runtime.getURL('models/neural_model.json');
-      this._model = await tf.loadLayersModel(url);
-      console.log('[QF AI] Neural model loaded successfully.');
-      return this._model;
-    } catch (err) {
-      console.error('[QF AI] Failed to load neural model — falling back to rule-based only.', err);
-      this._modelFailed = true;
-      return null;
-    }
-  },
-
-  // ─── Neural inference ───────────────────────────────────────────────────────
-
-  _vectorize(text) {
-    const sequence = new Int32Array(this._maxLen);
-    const cleaned = text.toLowerCase().slice(0, this._maxLen);
-    for (let i = 0; i < cleaned.length; i++) {
-      const charIdx = this._chars.indexOf(cleaned[i]);
-      sequence[i] = charIdx !== -1 ? charIdx + 1 : 0;
-    }
-    return tf.tensor2d([Array.from(sequence)], [1, this._maxLen]);
-  },
+  // ─── Neural inference (via background service worker) ───────────────────────
 
   async _neuralClassify(text) {
-    const model = await this._loadModel();
-    if (!model) return null;
-
-    // tf.tidy must be synchronous — extract all tensor ops into a sync block,
-    // then read data outside of tidy to avoid disposing tensors prematurely.
-    let index, probability;
-    tf.tidy(() => {
-      const input = this._vectorize(text);
-      const prediction = model.predict(input);
-      const probs = prediction.dataSync();
-      index = prediction.argMax(1).dataSync()[0];
-      probability = probs[index];
-    });
-
-    if (probability < 0.60) {
-      console.log(`[QF AI] Low confidence (${(probability * 100).toFixed(1)}%) for: "${text.slice(0, 40)}"`);
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'QF_CLASSIFY', text });
+      return (response && response.category) || null;
+    } catch {
+      // Background worker unavailable (e.g. no model file) — fall through
       return null;
     }
-
-    const category = this._categories[index];
-    console.log(`[QF AI] Neural: "${text.slice(0, 40)}" → ${category} (${(probability * 100).toFixed(1)}%)`);
-    return category;
   },
 
   // ─── Rule-based classifier (covers remaining profile fields) ────────────────
