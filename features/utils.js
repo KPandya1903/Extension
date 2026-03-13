@@ -26,6 +26,26 @@ QF.getFaviconUrl = function(url) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 };
 
+/**
+ * QF.matchesDomain(preset, hostname)
+ * Returns true if the preset should be visible on the given hostname.
+ *
+ * Rules:
+ *   - No domain restriction on the preset → always visible.
+ *   - Domain list is comma-separated (e.g. "linkedin.com, indeed.com").
+ *   - Each entry is matched as a suffix of the hostname so that:
+ *       "linkedin.com" matches "www.linkedin.com", "uk.linkedin.com", etc.
+ *       "indeed.com"   matches "au.indeed.com"
+ *   - Empty/blank entries are ignored.
+ */
+QF.matchesDomain = function(preset, hostname) {
+  if (!preset.domain) return true;
+  const entries = preset.domain.split(',').map(d => d.trim().toLowerCase()).filter(Boolean);
+  if (entries.length === 0) return true;
+  const h = hostname.toLowerCase();
+  return entries.some(d => h === d || h.endsWith('.' + d));
+};
+
 QF.copyToClipboard = function(text) {
   return new Promise((resolve, reject) => {
     const ta = document.createElement('textarea');

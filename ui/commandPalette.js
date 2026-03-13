@@ -69,12 +69,7 @@ QF.createCommandPalette = function(root) {
     if (open) {
       QF.Storage.getPresets().then(allRes => {
         const hostname = window.location.hostname;
-        snippets = allRes.filter(p => {
-          if (!p.domain) return true;
-          const domains = p.domain.split(',').map(d => d.trim().toLowerCase()).filter(Boolean);
-          if (domains.length === 0) return true;
-          return domains.some(d => hostname.includes(d) || d.includes(hostname));
-        });
+        snippets = allRes.filter(p => QF.matchesDomain(p, hostname));
         palette.style.display = 'flex';
         input.value = '';
         selectedIndex = 0;

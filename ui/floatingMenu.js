@@ -17,12 +17,7 @@ QF.createFloatingMenu = function(root, host, configPanel) {
 
   function renderSubButtons(allPresets) {
     const hostname = window.location.hostname;
-    const presets = allPresets.filter(p => {
-      if (!p.domain) return true;
-      const domains = p.domain.split(',').map(d => d.trim().toLowerCase()).filter(Boolean);
-      if (domains.length === 0) return true;
-      return domains.some(d => hostname.includes(d) || d.includes(hostname));
-    });
+    const presets = allPresets.filter(p => QF.matchesDomain(p, hostname));
 
     subButtons.forEach((el) => el.remove());
     subButtons = [];

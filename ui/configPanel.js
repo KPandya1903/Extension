@@ -27,29 +27,41 @@ QF.createConfigPanel = function() {
         <div class="qc-empty" style="display:none">No presets yet.</div>
       </div>
       <div id="qc-tab-identity" class="qc-tab-content">
-        <div class="qc-profile-scroll" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+        <div class="qc-profile-scroll" style="max-height: 340px; overflow-y: auto; padding-right: 4px;">
           <div class="qc-identity-grid">
+            <div style="grid-column: span 2; font-size: 11px; font-weight: 600; color: #6366f1; margin-bottom: 2px; border-bottom: 1px solid #ede9fe;">Personal</div>
             <input type="text" class="qc-p-firstName" placeholder="First Name">
             <input type="text" class="qc-p-lastName" placeholder="Last Name">
             <input type="text" class="qc-p-middleName" placeholder="Middle Name">
             <input type="text" class="qc-p-preferredName" placeholder="Preferred Name">
             <input type="text" class="qc-p-email" placeholder="Email Address" style="grid-column: span 2;">
             <input type="text" class="qc-p-phone" placeholder="Phone Number" style="grid-column: span 2;">
+            <input type="text" class="qc-p-address" placeholder="Street Address" style="grid-column: span 2;">
+            <input type="text" class="qc-p-city" placeholder="City">
+            <input type="text" class="qc-p-zip" placeholder="ZIP / Postal Code">
+            <div style="grid-column: span 2; font-size: 11px; font-weight: 600; color: #6366f1; margin-top: 8px; margin-bottom: 2px; border-bottom: 1px solid #ede9fe;">Professional</div>
             <input type="text" class="qc-p-company" placeholder="Current Company" style="grid-column: span 2;">
-            <input type="text" class="qc-p-salaryExpectation" placeholder="Salary Exp.">
-            <input type="text" class="qc-p-yearsOfExperience" placeholder="Exp Yrs">
-            <div style="grid-column: span 2; font-size: 11px; font-weight: 600; color: #2563eb; margin-top: 8px; border-bottom: 1px solid #ebf2ff;">Disclosures & Eligibility</div>
+            <input type="text" class="qc-p-linkedin" placeholder="LinkedIn URL" style="grid-column: span 2;">
+            <input type="text" class="qc-p-github" placeholder="GitHub URL" style="grid-column: span 2;">
+            <input type="text" class="qc-p-portfolio" placeholder="Portfolio / Website" style="grid-column: span 2;">
+            <textarea class="qc-p-summary" placeholder="Professional Summary / Cover Letter" style="grid-column: span 2; resize: vertical; min-height: 56px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; font-family: inherit;"></textarea>
+            <input type="text" class="qc-p-yearsOfExperience" placeholder="Years of Experience">
+            <input type="text" class="qc-p-noticePeriod" placeholder="Notice Period">
+            <input type="text" class="qc-p-salaryExpectation" placeholder="Salary Expectation" style="grid-column: span 2;">
+            <div style="grid-column: span 2; font-size: 11px; font-weight: 600; color: #6366f1; margin-top: 8px; margin-bottom: 2px; border-bottom: 1px solid #ede9fe;">Disclosures & Eligibility</div>
             <input type="text" class="qc-p-authorized" placeholder="Work Authorized? (Yes/No)">
-            <input type="text" class="qc-p-sponsorship" placeholder="Require Spons? (Yes/No)">
+            <input type="text" class="qc-p-sponsorship" placeholder="Need Sponsorship? (Yes/No)">
             <input type="text" class="qc-p-nationality" placeholder="Nationality">
+            <input type="text" class="qc-p-dualCitizenship" placeholder="Dual Citizenship? (Yes/No)">
             <input type="text" class="qc-p-over18" placeholder="Over 18? (Yes/No)">
             <input type="text" class="qc-p-officeWilling" placeholder="Office Willing? (Yes/No)">
-            <input type="text" class="qc-p-previousWork" placeholder="Worked here? (Yes/No)">
+            <input type="text" class="qc-p-previousWork" placeholder="Worked here before? (Yes/No)">
+            <input type="text" class="qc-p-currentEmployee" placeholder="Current employee? (Yes/No)">
             <input type="text" class="qc-p-gender" placeholder="Gender">
-            <input type="text" class="qc-p-ethnicity" placeholder="Race/Eth.">
-            <input type="text" class="qc-p-veteranStatus" placeholder="Vet. Status">
-            <input type="text" class="qc-p-disabilityStatus" placeholder="Dis. Status">
-            <button type="button" class="qc-btn-save-profile" style="grid-column: span 2; margin-top: 8px; height: 32px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Identity</button>
+            <input type="text" class="qc-p-ethnicity" placeholder="Race / Ethnicity">
+            <input type="text" class="qc-p-veteranStatus" placeholder="Veteran Status">
+            <input type="text" class="qc-p-disabilityStatus" placeholder="Disability Status">
+            <button type="button" class="qc-btn-save-profile" style="grid-column: span 2; margin-top: 10px; height: 34px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">Save Identity</button>
           </div>
         </div>
       </div>
@@ -66,25 +78,38 @@ QF.createConfigPanel = function() {
   const saveProfileBtn = panel.querySelector('.qc-btn-save-profile');
   
   const pInputs = {
-    firstName: panel.querySelector('.qc-p-firstName'),
-    lastName: panel.querySelector('.qc-p-lastName'),
-    middleName: panel.querySelector('.qc-p-middleName'),
-    preferredName: panel.querySelector('.qc-p-preferredName'),
-    email: panel.querySelector('.qc-p-email'),
-    phone: panel.querySelector('.qc-p-phone'),
-    company: panel.querySelector('.qc-p-company'),
-    salaryExpectation: panel.querySelector('.qc-p-salaryExpectation'),
-    yearsOfExperience: panel.querySelector('.qc-p-yearsOfExperience'),
-    authorized: panel.querySelector('.qc-p-authorized'),
-    sponsorship: panel.querySelector('.qc-p-sponsorship'),
-    nationality: panel.querySelector('.qc-p-nationality'),
-    over18: panel.querySelector('.qc-p-over18'),
-    officeWilling: panel.querySelector('.qc-p-officeWilling'),
-    previousWork: panel.querySelector('.qc-p-previousWork'),
-    gender: panel.querySelector('.qc-p-gender'),
-    ethnicity: panel.querySelector('.qc-p-ethnicity'),
-    veteranStatus: panel.querySelector('.qc-p-veteranStatus'),
-    disabilityStatus: panel.querySelector('.qc-p-disabilityStatus')
+    // Personal
+    firstName:          panel.querySelector('.qc-p-firstName'),
+    lastName:           panel.querySelector('.qc-p-lastName'),
+    middleName:         panel.querySelector('.qc-p-middleName'),
+    preferredName:      panel.querySelector('.qc-p-preferredName'),
+    email:              panel.querySelector('.qc-p-email'),
+    phone:              panel.querySelector('.qc-p-phone'),
+    address:            panel.querySelector('.qc-p-address'),
+    city:               panel.querySelector('.qc-p-city'),
+    zip:                panel.querySelector('.qc-p-zip'),
+    // Professional
+    company:            panel.querySelector('.qc-p-company'),
+    linkedin:           panel.querySelector('.qc-p-linkedin'),
+    github:             panel.querySelector('.qc-p-github'),
+    portfolio:          panel.querySelector('.qc-p-portfolio'),
+    summary:            panel.querySelector('.qc-p-summary'),
+    yearsOfExperience:  panel.querySelector('.qc-p-yearsOfExperience'),
+    noticePeriod:       panel.querySelector('.qc-p-noticePeriod'),
+    salaryExpectation:  panel.querySelector('.qc-p-salaryExpectation'),
+    // Disclosures
+    authorized:         panel.querySelector('.qc-p-authorized'),
+    sponsorship:        panel.querySelector('.qc-p-sponsorship'),
+    nationality:        panel.querySelector('.qc-p-nationality'),
+    dualCitizenship:    panel.querySelector('.qc-p-dualCitizenship'),
+    over18:             panel.querySelector('.qc-p-over18'),
+    officeWilling:      panel.querySelector('.qc-p-officeWilling'),
+    previousWork:       panel.querySelector('.qc-p-previousWork'),
+    currentEmployee:    panel.querySelector('.qc-p-currentEmployee'),
+    gender:             panel.querySelector('.qc-p-gender'),
+    ethnicity:          panel.querySelector('.qc-p-ethnicity'),
+    veteranStatus:      panel.querySelector('.qc-p-veteranStatus'),
+    disabilityStatus:   panel.querySelector('.qc-p-disabilityStatus')
   };
 
   panel.addEventListener('mousedown', (e) => {
